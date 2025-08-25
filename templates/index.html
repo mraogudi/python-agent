@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Python Coding Agent - AI-Powered Code Generation{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Input Panel -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-keyboard me-2"></i>
+                    Task Description
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="taskForm">
+                    <div class="mb-3">
+                        <label for="taskDescription" class="form-label">
+                            Describe what you want the Python code to do:
+                        </label>
+                        <textarea 
+                            id="taskDescription" 
+                            class="form-control" 
+                            rows="8" 
+                            placeholder="Example: Create a function that calculates the factorial of a number using recursion"
+                            required></textarea>
+                        <div class="form-text">
+                            Be specific about what you want the code to accomplish. 
+                            Include any requirements, constraints, or expected inputs/outputs.
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary" id="generateBtn">
+                            <i class="fas fa-magic me-2"></i>
+                            Generate Code
+                        </button>
+                        <button type="button" class="btn btn-success" id="generateAndRunBtn">
+                            <i class="fas fa-play me-2"></i>
+                            Generate & Run Code
+                        </button>
+                        <button type="button" class="btn btn-info" id="runCodeBtn" disabled>
+                            <i class="fas fa-play me-2"></i>
+                            Run Generated Code
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Validation Messages -->
+                <div id="validationAlert" class="alert alert-warning mt-3" style="display: none;">
+                    <h6 class="alert-heading">Task Description Feedback</h6>
+                    <p id="validationMessage" class="mb-2"></p>
+                    <div id="validationSuggestions"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Output Panel -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-code me-2"></i>
+                    Generated Code & Results
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Code Display -->
+                <div id="codeSection" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-primary mb-0">Generated Code:</h6>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyCode()">
+                            <i class="fas fa-copy me-1"></i>Copy
+                        </button>
+                    </div>
+                    <pre class="code-container"><code id="generatedCode" class="language-python"></code></pre>
+                    
+                    <div id="explanation" class="mt-3">
+                        <h6 class="text-info">Explanation:</h6>
+                        <p id="explanationText" class="text-muted"></p>
+                    </div>
+                </div>
+                
+                <!-- Execution Results -->
+                <div id="executionSection" style="display: none;">
+                    <h6 class="text-success">Execution Results:</h6>
+                    <div class="execution-result">
+                        <div id="executionOutput" class="output-container"></div>
+                        <div id="executionError" class="error-container" style="display: none;"></div>
+                        <div id="executionTime" class="text-muted small mt-2"></div>
+                    </div>
+                </div>
+                
+                <!-- Loading State -->
+                <div id="loadingState" style="display: none;">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">
+                            <span id="loadingText">Processing your request...</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Initial State -->
+                <div id="initialState" class="text-center py-5">
+                    <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Ready to Generate Code</h5>
+                    <p class="text-muted">
+                        Enter a task description and click "Generate Code" to get started.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Examples Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Example Tasks
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Basic Examples:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <button class="btn btn-sm btn-outline-primary me-2" onclick="fillExample('Calculate the factorial of a number using recursion')">Use</button>
+                                Calculate factorial using recursion
+                            </li>
+                            <li class="mb-2">
+                                <button class="btn btn-sm btn-outline-primary me-2" onclick="fillExample('Create a function to check if a number is prime')">Use</button>
+                                Check if a number is prime
+                            </li>
+                            <li class="mb-2">
+                                <button class="btn btn-sm btn-outline-primary me-2" onclick="fillExample('Sort a list of dictionaries by a specific key')">Use</button>
+                                Sort list of dictionaries
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Advanced Examples:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <button class="btn btn-sm btn-outline-primary me-2" onclick="fillExample('Create a class for a simple bank account with deposit, withdraw, and balance methods')">Use</button>
+                                Bank account class
+                            </li>
+                            <li class="mb-2">
+                                <button class="btn btn-sm btn-outline-primary me-2" onclick="fillExample('Generate a random password with specified length and character requirements')">Use</button>
+                                Password generator
+                            </li>
+                            <li class="mb-2">
+                                <button class="btn btn-sm btn-outline-primary me-2" onclick="fillExample('Parse a CSV file and calculate summary statistics')">Use</button>
+                                CSV analysis
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Modal -->
+<div class="modal fade" id="statsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    System Statistics
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="statsContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
