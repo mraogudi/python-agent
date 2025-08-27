@@ -31,7 +31,10 @@ def generate_code():
     try:
         # Get task description from request
         data = request.get_json()
+        print(data)
         task_description = data.get('task_description', '').strip()
+        print(task_description)
+        print(coding_agent)
         
         if not task_description:
             return jsonify({

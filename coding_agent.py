@@ -1,20 +1,23 @@
-import openai
+from openai import OpenAI
 import re
-from typing import Dict, Tuple, Optional
+import os
+from typing import Dict, Tuple
 from config import Config
+from dotenv import load_dotenv
 
 class CodingAgent:
     """AI-powered coding agent that generates Python code from natural language descriptions."""
-    
+    load_dotenv()
+
     def __init__(self):
         """Initialize the coding agent with OpenAI API."""
-        self.api_key = Config.OPENAI_API_KEY
-        if not self.api_key:
-            raise ValueError("OpenAI API key not found. Please set OPENAI_API_KEY environment variable.")
-        
-        openai.api_key = self.api_key
-        self.client = openai.OpenAI(api_key=self.api_key)
-    
+        self.api_key = os.getenv("OPENAI_API_KEY")
+        # if not self.api_key:
+        #     raise ValueError("OpenAI API key not found. Please set OPENAI_API_KEY environment variable.")
+
+        OpenAI.api_key = os.getenv("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
     def generate_code(self, task_description: str) -> Dict[str, any]:
         """
         Generate Python code based on natural language task description.
@@ -28,7 +31,7 @@ class CodingAgent:
         try:
             # Create a comprehensive prompt for code generation
             prompt = self._create_code_generation_prompt(task_description)
-            
+
             # Call OpenAI API
             response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
@@ -39,11 +42,11 @@ class CodingAgent:
                 temperature=0.3,
                 max_tokens=1500
             )
-            
+
             # Parse the response
             content = response.choices[0].message.content
             code, explanation = self._parse_response(content)
-            
+
             return {
                 "success": True,
                 "code": code,
@@ -51,7 +54,7 @@ class CodingAgent:
                 "task": task_description,
                 "model_used": "gpt-3.5-turbo"
             }
-            
+
         except Exception as e:
             return {
                 "success": False,
@@ -60,7 +63,7 @@ class CodingAgent:
                 "explanation": f"Failed to generate code: {str(e)}",
                 "task": task_description
             }
-    
+
     def _get_system_prompt(self) -> str:
         """Get the system prompt for the AI model."""
         return """You are an expert Python programmer. Your job is to generate clean, efficient, and well-commented Python code based on natural language descriptions.
@@ -80,7 +83,7 @@ Response format:
 ```
 
 Explanation: Brief explanation of what the code does and how it works."""
-    
+
     def _create_code_generation_prompt(self, task_description: str) -> str:
         """Create a detailed prompt for code generation."""
         return f"""Generate Python code for the following task:
@@ -93,7 +96,7 @@ Please provide:
 3. A brief explanation after the code block
 
 Make sure the code is ready to run and includes any necessary imports."""
-    
+
     def _parse_response(self, content: str) -> Tuple[str, str]:
         """
         Parse the AI response to extract code and explanation.
@@ -107,7 +110,7 @@ Make sure the code is ready to run and includes any necessary imports."""
         # Extract code block
         code_pattern = r'```python\n(.*?)```'
         code_match = re.search(code_pattern, content, re.DOTALL)
-        
+
         if code_match:
             code = code_match.group(1).strip()
         else:
@@ -118,7 +121,7 @@ Make sure the code is ready to run and includes any necessary imports."""
                 code = code_match_generic.group(1).strip()
             else:
                 code = content.strip()
-        
+
         # Extract explanation (everything after the code block)
         if code_match:
             explanation_start = code_match.end()
@@ -127,9 +130,9 @@ Make sure the code is ready to run and includes any necessary imports."""
             explanation = re.sub(r'^Explanation:\s*', '', explanation, flags=re.IGNORECASE)
         else:
             explanation = "Generated code based on the given task description."
-        
+
         return code, explanation
-    
+
     def validate_task_description(self, task_description: str) -> Dict[str, any]:
         """
         Validate and provide suggestions for the task description.
@@ -150,7 +153,7 @@ Make sure the code is ready to run and includes any necessary imports."""
                     "Specify any constraints or requirements"
                 ]
             }
-        
+
         # Check for vague descriptions
         vague_keywords = ['something', 'anything', 'stuff', 'thing']
         if any(keyword in task_description.lower() for keyword in vague_keywords):
@@ -163,9 +166,9 @@ Make sure the code is ready to run and includes any necessary imports."""
                     "Mention any specific algorithms or approaches"
                 ]
             }
-        
+
         return {
             "valid": True,
             "message": "Task description looks good!",
             "suggestions": []
-        } 
+        }
