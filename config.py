@@ -13,7 +13,7 @@ class Config:
     DEBUG = os.environ.get('FLASK_DEBUG', 'True').lower() == 'true'
     
     # OpenAI configuration
-    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+    OPENAI_API_KEY = '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'
     
     # Code execution settings
     MAX_EXECUTION_TIME = 10  # seconds
